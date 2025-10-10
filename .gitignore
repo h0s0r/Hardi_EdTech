@@ -1,0 +1,24 @@
+# JetBrains/PyCharm IDE files
+.idea/
+
+# Python virtual environment
+.venv/
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Local testing and coverage reports
+.pytest_cache/
+.coverage
+htmlcov/
