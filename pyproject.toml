@@ -1,29 +1,90 @@
-[project]
-name = "hardi-edtech-app"
-version = "0.1.0"
-description = ""
-authors = [
-    {name = "h0s0r",email = "hardidar.ldh@gmail.com"}
-]
+[tool.poetry]
+name = "hardi-edtech-agent"
+version = "1.0.0"
+description = "God-Level AI Agent with Multi-Persona RAG System"
+authors = ["h0s0r <hardidar.ldh@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
-dependencies = [
-    "streamlit (>=1.50.0,<2.0.0)",
-    "langchain (>=0.3.27,<0.4.0)",
-    "langchain-community (>=0.3.31,<0.4.0)",
-    "ollama (>=0.6.0,<0.7.0)",
-    "tavily-python (>=0.7.12,<0.8.0)",
-    "chromadb (>=1.1.1,<2.0.0)",
-    "pypdf (>=6.1.1,<7.0.0)",
-    "sentence-transformers (>=5.1.1,<6.0.0)",
-    "python-dotenv (>=1.1.1,<2.0.0)",
-    "wikipedia (>=1.4.0,<2.0.0)"
-]
+packages = [{include = "app"}]
 
+[tool.poetry.dependencies]
+python = "^3.10,<3.13"
+
+# Core Framework
+streamlit = "^1.39.0"
+
+# LangChain Ecosystem - FIXED COMPATIBLE VERSIONS
+langchain = "^0.3.0"
+langchain-community = "^0.3.0"
+langchain-core = "^0.3.0"
+langchain-ollama = "^0.2.0"
+langgraph = "^0.2.0"
+langsmith = "^0.1.0"
+
+# Vector Store & Embeddings
+chromadb = "^0.5.0"
+sentence-transformers = "^3.0.0"
+
+# PDF Processing
+pypdf = "^5.0.0"
+
+# Document Loaders & Text Processing
+langchain-text-splitters = "^0.3.0"
+
+# Web Search Tools
+tavily-python = "^0.5.0"
+wikipedia = "^1.4.0"
+
+# Scientific & Data Processing
+numpy = "^1.26.0"
+pandas = "^2.2.0"
+
+# Utilities
+python-dotenv = "^1.0.0"
+pydantic = "^2.9.0"
+pydantic-settings = "^2.5.0"
+
+# Additional NLP Tools (OPTIONAL - add later if needed)
+# nltk = "^3.9.1"
+# spacy = "^3.8.0"
+langchain-experimental = "^0.3.4"
+faiss-cpu = "^1.12.0"
+
+[tool.poetry.group.dev.dependencies]
+# Development Tools
+pytest = "^8.0.0"
+pytest-cov = "^4.1.0"
+black = "^24.1.0"
+ruff = "^0.2.0"
+mypy = "^1.8.0"
+ipython = "^8.20.0"
+jupyter = "^1.0.0"
+
+[tool.poetry.group.test.dependencies]
+# Testing specific
+pytest-asyncio = "^0.23.0"
+pytest-mock = "^3.12.0"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry]
-package-mode = false
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=app --cov-report=html --cov-report=term-missing"
