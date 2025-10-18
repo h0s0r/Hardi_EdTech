@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Hardi EdTech Agent Service
+  hardi-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hardi-edtech-agent
+    ports:
+      - "8501:8501"  # Streamlit UI
+    environment:
+      # Environment variables from .env file
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - OLLAMA_HOST=http://ollama:11434  # Connect to ollama service
+      - OLLAMA_MODEL=gpt-oss:20b
+    volumes:
+      # Mount for persistent data
+      - ./data:/app/data
+      - ./logs:/app/logs
+      # Mount .env file
+      - ./.env:/app/.env
+    depends_on:
+      - ollama
+    networks:
+      - hardi-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Ollama Service (Local LLM)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: hardi-ollama
+    ports:
+      - "11434:11434"  # Ollama API
+    volumes:
+      # Persistent model storage
+      - ollama-data:/root/.ollama
+    networks:
+      - hardi-network
+    restart: unless-stopped
+    # Pull model on startup
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        # Start Ollama server in background
+        /bin/ollama serve &
+        # Wait for server to be ready
+        sleep 10
+        # Pull the model if not exists
+        ollama pull gpt-oss:20b
+        # Keep container running
+        wait
+
+networks:
+  hardi-network:
+    driver: bridge
+
+volumes:
+  # Persistent storage for Ollama models
+  ollama-data:
+    driver: local

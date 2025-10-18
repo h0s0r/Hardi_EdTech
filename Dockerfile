@@ -1,23 +1,47 @@
-# Use an official Python runtime as a parent image
-FROM python:3.11-slim
+# Multi-stage build for Hardi EdTech Agent
+FROM python:3.10-slim as base
 
-# Set the working directory in the container
-WORKDIR /app
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
-RUN pip install poetry
+RUN curl -sSL https://install.python-poetry.org | python3 - \
+    && ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 
-# Copy only the files needed for dependency installation to leverage Docker layer caching
-COPY pyproject.toml poetry.lock ./
+# Set working directory
+WORKDIR /app
 
-# Install project dependencies, creating no virtual environment in the container
-RUN poetry config virtualenvs.create false && poetry install --no-root --no-dev
+# Copy poetry files
+COPY pyproject.toml poetry.lock* ./
 
-# Copy the rest of the application code into the container
-COPY ./app /app/
+# Install dependencies (no dev dependencies for production)
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi --no-root --only main
 
-# Expose the port Streamlit runs on
+# Copy application code
+COPY . .
+
+# Install the package itself
+RUN poetry install --no-interaction --no-ansi --only-root
+
+# Create directory for temporary PDF storage
+RUN mkdir -p /app/data /app/logs
+
+# Expose Streamlit port
 EXPOSE 8501
 
-# Define the command to run your app when the container starts
-CMD ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+
+# Run Streamlit
+CMD ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
